@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { inject, onMounted, ref } from 'vue';
+import { CurrentAccount } from '../../types/CurrentAccount';
+import { GetCurrentAccount } from '../../usecases/getCurrentAccount/GetCurrentAccount';
+import { providers } from '../../providers';
 
 // Reactive form data
-const name = ref(localStorage.getItem('username'));
 const age = ref(null);
 const city = ref('Campos dos Goytacazes');
-const email = ref(localStorage.getItem('email'));
 const profileImage = ref<string | null>(localStorage.getItem('profilePictureURL'));
 
 // Function to handle image change
@@ -42,15 +43,17 @@ const toggleEdit = (editableField: string) => {
 			break;
 	}
 };
+
+const currentAccount = ref<CurrentAccount | null>(null)
+const getCurrentAccountUsecase = ref<GetCurrentAccount | null>(null)
+
+onMounted(() => {
+	getCurrentAccountUsecase.value = inject(providers.GET_CURRENT_ACCOUNT.key)
+	currentAccount.value = getCurrentAccountUsecase.value.perform()
+})
 </script>
 
 <template>
-	<div class="flex p-4">
-		<RouterLink class="flex space-x-2" to="/home">
-			<img class="w-[16px]" id="main-frame-header-left-arrow" src="/assets/main-frame/Left arrow.svg" alt="Voltar para home">
-			<img class="w-[48px]" id="empregae-logo-curta" src="/empregae-logo.png" alt="EmpregAê logo">
-		</RouterLink>
-	</div>
 	<div class="min-h-screen flex items-start justify-center p-6">
 		<div class="w-full max-w-sm bg-green-500 p-6 rounded-lg shadow-md">
 			<div class="relative mb-6 flex justify-center">
@@ -67,10 +70,10 @@ const toggleEdit = (editableField: string) => {
 				</label>
 			</div>
 
-			<form class="flex flex-col gap-4">
+			<form class="flex flex-col gap-4" v-if="currentAccount">
 				<!-- Name Field -->
 				<div class="relative mb-4">
-					<input v-model="name" :readonly="!isNameEditable" type="text"
+					<input v-model="currentAccount.name" :readonly="!isNameEditable" type="text"
 						:class="['w-full px-4 py-2 rounded-lg shadow-md focus:outline-none', isNameEditable ? 'bg-white border border-blue-500' : 'bg-gray-200']" />
 					<div class="absolute right-2 -top-4 bg-white p-1 cursor-pointer rounded-full" @click="toggleEdit('name')">
 						<img src="/edit.png" alt="edit icon" class="w-5 h-5" />
@@ -97,7 +100,7 @@ const toggleEdit = (editableField: string) => {
 
 				<!-- Email Field -->
 				<div class="relative mb-4">
-					<input v-model="email" :readonly="!isEmailEditable" type="email" placeholder="E-mail"
+					<input v-model="currentAccount.email" :readonly="!isEmailEditable" type="email" placeholder="E-mail"
 						:class="['w-full px-4 py-2 rounded-lg shadow-md focus:outline-none', isEmailEditable ? 'bg-white border border-blue-500' : 'bg-gray-200']" />
 					<div class="absolute right-2 -top-4 bg-white p-1 cursor-pointer rounded-full" @click="toggleEdit('email')">
 						<img src="/edit.png" alt="edit icon" class="w-5 h-5" />
