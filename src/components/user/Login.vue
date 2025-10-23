@@ -1,47 +1,45 @@
 <script setup  lang="ts">
-import { reactive} from 'vue';
+import { inject, onMounted, reactive, ref} from 'vue';
 import LoginFormInput from './login_form/LoginFormInput.vue';
 import router from '../../router';
+import { providers } from '../../providers';
+import { UpdateCurrentAccount } from '../../usecases/updateCurrentAccount/UpdateCurrentAccount';
+import { Login } from '../../usecases/login/Login';
 
-type LoginFormType = [
-  username: {
-    model: String,
-    placeholder: 'Nome',
-    type: 'text'
-  },
-  age: {
-    model: Number | undefined,
-    placeholder: 'Idade',
-    type: 'number'
-  },
-  city: {
-    model: String,
-    placeholder: 'Cidade',
-    type: 'text'
-  },
-]
-
-const form: LoginFormType = reactive([
+const form = reactive([
   {
     model: '',
     placeholder: 'Nome',
     type: 'text'
   },
   {
-    model: undefined,
-    placeholder: 'Idade',
-    type: 'number'
-  },
-  {
     model: '',
-    placeholder: 'Cidade',
-    type: 'text'
-  }
+    placeholder: 'Email',
+    type: 'email'
+  },
 ])
 
+const loginUsecase = ref<Login | null>(null)
+const updateCurrentAccountUsecase = ref<UpdateCurrentAccount | null>(null)
+
 const handleSubmit = async () => {
-  await router.push({path: '/home'})
+  try {
+    const currentAccount = await loginUsecase.value.perform({
+      name: form[0].model,
+      email: form[1].model
+    })
+    updateCurrentAccountUsecase.value.perform(currentAccount)
+
+    await router.push({path: '/home'})
+  } catch (e) {
+    console.error(e)
+  }
 }
+
+onMounted(() => {
+  loginUsecase.value = inject<Login>(providers.LOGIN.key)
+  updateCurrentAccountUsecase.value = inject<UpdateCurrentAccount>(providers.UPDATE_CURRENT_ACCOUNT.key)
+})
 
 const handleGoogleLogin = () => {
   window.location.href = 'http://localhost:9999/auth/google/login'
