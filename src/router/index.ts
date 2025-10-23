@@ -57,13 +57,13 @@ const router = createRouter({
           path: "/empregador",
           name: "Empregador",
           component: Empregador
-        }
+        },
+        {
+          path: '/profile',
+          name: 'Perfil',
+          component: Profile
+        },
       ]
-    },
-    {
-      path: '/profile',
-      name: 'profile',
-      component: Profile
     },
     {
       path: '/curriculo',
