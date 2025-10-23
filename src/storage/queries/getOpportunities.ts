@@ -1,42 +1,9 @@
 import { useQuery } from "@tanstack/vue-query"
-import api from "../../axios"
-import { ApiOpportunity, Opportunity } from "../../types/opportunitiesTypes"
+import { Opportunity } from "../../types/opportunitiesTypes"
+import { inject } from "vue"
+import { providers } from "../../providers"
+import { GetOpportunities } from "../../usecases/getOpportunities/GetOpportunities"
 
-
-const parseOpportunity = (apiOpportunity: ApiOpportunity): Opportunity => ({
-  "companyId": apiOpportunity.companyId,
-  "location": {
-    "state": apiOpportunity.location.state,
-    "city": apiOpportunity.location.city
-  },
-  "title": apiOpportunity.title,
-  "type": apiOpportunity.type,
-  "salary": apiOpportunity.salary,
-  "benefits": apiOpportunity.benefits,
-  "requirements": apiOpportunity.requirements,
-  "description": apiOpportunity.description,
-  "publicationDate": new Date(apiOpportunity.publicationDate),
-  "applicationDeadline": new Date(apiOpportunity.applicationDeadline),
-  "workSchedule": apiOpportunity.workSchedule,
-  "workMode": apiOpportunity.workMode,
-  "sector": apiOpportunity.sector,
-  "level": apiOpportunity.level,
-  "contact": {
-    "email": apiOpportunity.contact.email,
-    "phone": apiOpportunity.contact.phone
-  },
-  "desiredSkills": apiOpportunity.desiredSkills,
-  "education": apiOpportunity.education,
-  "experience": apiOpportunity.experience
-})
-
-const getOpportunitiesFetch = async ():  Promise<Opportunity[]> => {
-  const {data} = await api.get<ApiOpportunity[]>('/job-opportunities')
-  return data.map((opportunity) => {
-    return parseOpportunity(opportunity)
-  })
-  // return Array(7).fill(parseOpportunity(data[0]))
-}
 
 const getOpportunitiesFetchMock = async (): Promise<Opportunity[]> => {
   return new Promise((resolve, reject) => {
@@ -99,9 +66,15 @@ const getOpportunitiesFetchMock = async (): Promise<Opportunity[]> => {
   })
 }
 
+export const getOpportunitiesQueryKey = () => ['getOpportunities']
+
 export const useGetOpportunitiesQuery = () => {
+  const usecase = inject<GetOpportunities>(providers.GET_OPPORTUNITIES.key)
+
   return useQuery({
-    queryKey: ['getOpportunities'],
-    queryFn: getOpportunitiesFetchMock
+    queryKey: getOpportunitiesQueryKey(),
+    queryFn: async () => {
+      return await usecase.perform()
+    }
   })
 }
