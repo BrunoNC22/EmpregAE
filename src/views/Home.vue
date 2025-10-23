@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { inject, onMounted, ref } from 'vue';
 import Card from '../components/Card.vue';
 import Navigation from '../components/Navigation.vue';
+import { CurrentAccount } from '../types/CurrentAccount';
+import { GetCurrentAccount } from '../usecases/getCurrentAccount/GetCurrentAccount';
+import { providers } from '../providers';
 
 
 
@@ -23,7 +26,15 @@ const options = ref<OptionsType[]>([
   { title: 'Atendimento', icon: '/assets/icon-atendimento.png', link: '/atendimento' },
 ]);
 
-const userName = localStorage.getItem('username')
+const currentAccount = ref<CurrentAccount | null>(null)
+const getCurrentAccountUsecase = ref<GetCurrentAccount | null>(null)
+
+onMounted(() => {
+  getCurrentAccountUsecase.value = inject<GetCurrentAccount>(providers.GET_CURRENT_ACCOUNT.key)
+  currentAccount.value = getCurrentAccountUsecase.value.perform()
+})
+
+
 </script>
 
 <template>
@@ -31,7 +42,7 @@ const userName = localStorage.getItem('username')
   <main class="profile-container">
     <section class="section-container">
         <div class="user-hi">
-            <p>Bem-vindo(a), <span>{{ userName }}!</span></p>
+            <p v-if="currentAccount">Bem-vindo(a), <span>{{ currentAccount.name }}!</span></p>
         </div>
         <div class="cards-wrapper">
             <div class="cards-container">
